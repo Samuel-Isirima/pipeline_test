@@ -58,5 +58,6 @@ jobs:
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           script: |
             cd /var/www/stage.athleteagents.com
+            git pull 
            
 
