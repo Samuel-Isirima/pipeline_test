@@ -58,7 +58,5 @@ jobs:
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           script: |
             cd /var/www/stage.athleteagents.com
-            git pull origin main
-            composer update --ignore-platform-reqs
-            php artisan migrate --force
+           
 
