@@ -1,0 +1,64 @@
+name: AthleteAgents CI/CD with Deployment
+
+on:
+  push:
+    branches:
+      - stage
+      - main
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Set up PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.1'
+
+      - name: Install dependencies
+        run: composer install --ignore-platform-reqs
+
+  deploy-staging:
+    runs-on: ubuntu-latest
+
+    needs: build
+
+    if: github.ref == 'refs/heads/staging'  # Only run for the staging branch
+
+    steps:
+      - name: Deploy to Ubuntu server (staging)
+        uses: appleboy/ssh-action@master
+        with:
+          host: 167.172.143.244
+          username: ${{ secrets.SSH_USERNAME }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          script: |
+            cd /home/webapps/staging-athleteagents
+            git pull origin stage
+            composer update --ignore-platform-reqs
+            php artisan migrate
+
+  deploy-main:
+    runs-on: ubuntu-latest
+
+    needs: build
+
+    if: github.ref == 'refs/heads/main'  # Only run for the main branch
+
+    steps:
+      - name: Deploy to Ubuntu server (main)
+        uses: appleboy/ssh-action@master
+        with:
+          host: 167.172.143.244
+          username: ${{ secrets.SSH_USERNAME }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          script: |
+            cd /var/www/stage.athleteagents.com
+            git pull origin main
+            composer update --ignore-platform-reqs
+            php artisan migrate --force
+
